@@ -1,6 +1,5 @@
-### 简易mvvm实现
-new MVVM()
-#### 具体实现
+### 简易mvvm实现/angular简易原理dirty
+#### new MVVM()具体实现
 ``` bash
 let vm = new MVVM({
   el: '#app',
@@ -42,4 +41,12 @@ let vm = new MVVM({
   2、通过文档碎片在内存中操作document.createDocumentFragment()，找到v-、{{}}等节点
   3、遍历替换相应元素、节点
   4、把数据绑定到vm上，通过上到prototype上update、bindNode等
+```
+
+#### dirty.js简易angular原理实现
+``` bash
+  1、执行scope对象上的$watch函数，$$watchers数组对象保留callback函数
+  2、执行$apply方法更新，执行$digest方法实行至少检查一次do {} while()
+  3、$digest执行callback函数（watcher.fn(newVal, oldVal)），返回boolean值判断是否还有再次变化的值
+  4、如果还有继续$digest检查
 ```
