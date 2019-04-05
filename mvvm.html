@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>angular原理</title>
+</head>
+
+<body>
+  <div id="app">
+    <div><input type="text" v-model="name" /> {{name}}</div>
+    <div><input type="text" v-model="msg" /> {{msg}}</div>
+    <div>
+      <div>mvvm</div>
+    </div>
+  </div>
+  <script>
+    function ViewModel(data) {
+      this.data = data;
+      this.nodes = [];
+    }
+    ViewModel.prototype = {
+      bindNode: function (node) {// 节点数据绑定一起
+        this.nodes.push(node);
+      },
+      setVal(newValue) {
+        if (newValue === this.data) return;
+        this.data = newValue;
+        this.update();
+      },
+      getVal() {
+        return this.data;
+      },
+      update() { // 更新渲染成我们想要的结果
+        this.nodes.forEach(node => {
+          if (node.nodeType === 1) {
+            node.value = this.data;
+          } else { // {{name}} {{age}}
+            node.textContent = node.tempTextContent.replace(/\{\{([^}]*)\}\}/, function () {
+              return obj[arguments[1]].data;
+            })
+          }
+        })
+      },
+    }
+    let obj = { msg: new ViewModel('你好'), name: new ViewModel('欢迎你') };
+    function compile(el) {
+      let ele = document.querySelector(el);
+      // 我们不要直接操作节点  可能导致页面重新渲染回流 采取放到内存里面起操作文档碎片
+      let fragment = document.createDocumentFragment();
+      let child;
+      while (child = ele.children[0]) {
+        fragment.appendChild(child);
+      }
+      // fragment nodeList 类数组Array.prototype.slice.call
+      // todo
+      function replace(fragment) {
+        Array.from(fragment.childNodes).forEach(node => {
+          if (node.nodeType === 1) { // 元素节点
+            Array.from(node.attributes).forEach(attr => {
+              let { name, value } = attr; // v-model="name"
+              if (name.includes('v-')) {
+                obj[value].bindNode(node);
+                node.addEventListener('input', function(e) {
+                  obj[value].setVal(e.target.value);
+                })
+              }
+            });
+          }
+          let reg = /\{\{([^}]*)\}\}/g;
+          let text = node.textContent;
+          if (node.nodeType === 3 && reg.test(text)) { // 文本节点 {{xxx}}
+            node.tempTextContent = text;
+            text.replace(reg, function () {
+              obj[arguments[1]].bindNode(node);
+            })
+          }
+          if (node.childNodes.length) {
+            replace(node); // 如果有嵌套继续查找
+          }
+        })
+      }
+      replace(fragment);// 编译后update
+      Object.keys(obj).forEach(key => {
+        obj[key].update();
+      })
+      ele.appendChild(fragment);
+    }
+    compile('#app');
+  </script>
+</body>
+
+</html>

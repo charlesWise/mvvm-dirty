@@ -1,4 +1,4 @@
-## 简易mvvm实现
+### 简易mvvm实现
 new MVVM()
 #### 具体实现
 ``` bash
@@ -34,4 +34,12 @@ let vm = new MVVM({
 #### 如何将数据代理到vm上
 ``` bash
   在劫持完数据遍历属性data值Object.defineProperty代理到this上即vm上
+```
+
+#### mvvm.html
+``` bash
+  1、数据data值通过new vm()对象进行绑定
+  2、通过文档碎片在内存中操作document.createDocumentFragment()，找到v-、{{}}等节点
+  3、遍历替换相应元素、节点
+  4、把数据绑定到vm上，通过上到prototype上update、bindNode等
 ```
